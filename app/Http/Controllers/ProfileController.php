@@ -6,50 +6,48 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Inertia\Inertia;
 
 class ProfileController extends Controller
 {
+
+    public function showAuthPage()
+    {
+        return Inertia::render('Auth/Login');
+    }
+
     public function register(Request $request)
     {
         $request->validate([
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|min:8',
-            'name' => 'required'
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8|confirmed',
         ]);
 
         User::create([
+            'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'name' => $request->name,
         ]);
 
-        return response()->json([
-            'message' => 'Akun telah berhasil dibuat'
-        ], 201);
+        Auth::attempt($request->only('email', 'password'));
+        return redirect('/dashboard');
     }
 
     public function login(Request $request)
     {
         $request->validate([
             'email' => 'required|email',
-            'password' => 'required'
+            'password' => 'required',
         ]);
 
-        if (!Auth::attempt($request->only('email', 'password'))) {
-            return response()->json([
-                'message' => 'Email atau password salah.'
-            ], 401);
+        if (Auth::attempt($request->only('email', 'password'))) {
+            $request->session()->regenerate();
+            return redirect()->intended('/dashboard');
         }
 
-        $user = User::where('email', $request->email)->firstOrFail();
-
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return response()->json([
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-            'role' => $user->role,
-            'name' => $user->name,
+        return back()->withErrors([
+            'email' => 'Email atau password salah.',
         ]);
     }
 
@@ -57,9 +55,7 @@ class ProfileController extends Controller
     {
         $request->user()->currentAccessToken()->delete();
 
-        return response()->json([
-            'message' => 'Logout berhasil!'
-        ], 200);
+        return redirect()->route('/')->with('success', 'Logout berhasil.');
     }
 
     public function getProfile(Request $request)
@@ -67,14 +63,17 @@ class ProfileController extends Controller
         $user = Auth::user();
 
         if (!$user) {
-            return response()->json(['error' => 'Profil tidak ditemukan'], 404);
+            return redirect()->back()->with('error', 'Profile tidak ditemukan.');
         }
 
-        return response()->json([
-            'name' => $user->name,
-            'email' => $user->email,
-            'bio' => $user->bio,
-            'path' => $user->path ? asset('storage/public/profile_images' . $user->path) : null,
+        return Inertia::render('Profile', [
+            'user' =>
+                [
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'bio' => $user->bio,
+                    'path' => $user->path ? asset('storage/public/profile_images' . $user->path) : null,
+                ]
         ]);
     }
 
@@ -100,11 +99,6 @@ class ProfileController extends Controller
             'bio' => $request->bio,
         ]);
 
-        $user->save();
-
-        return response()->json([
-            'message' => 'Berhasil memperbarui data pengguna',
-            'image_url' => $user->path ? asset('storage/public/menu_images/' . $user->path) : null,
-        ], 200);
+        return redirect()->route('profile')->with('success', 'Profile berhasil diupdate.');
     }
 }
