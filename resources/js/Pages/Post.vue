@@ -18,7 +18,6 @@
                         accept="image/*,video/*"
                     />
                 </div>
-                <!-- Preview for Image or Video -->
                 <div v-if="previewUrl" class="preview-container">
                     <img
                         v-if="isImage"

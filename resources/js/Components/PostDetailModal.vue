@@ -1,6 +1,9 @@
 <template>
     <div v-if="isOpen" class="modal-overlay" @click.self="closeModal">
         <div class="modal-content">
+            <button class="close-button" @click="$inertia.visit('/dashboard')">
+                &times;
+            </button>
             <div class="left-section">
                 <img
                     :src="post.image_url"
@@ -23,7 +26,6 @@
                 <div class="caption">
                     {{ post.caption }}
                 </div>
-                <!-- Gabungkan caption dan comments-section dalam satu container -->
                 <div class="scrollable-section">
                     <div class="comments-section">
                         <div
@@ -105,6 +107,18 @@ export default {
     background: white;
     border-radius: 8px;
     overflow: hidden;
+    position: relative; /* Agar tombol silang terletak relatif terhadap modal */
+}
+
+.close-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    font-size: 2em;
+    color: #333; /* Warna tombol silang */
+    cursor: pointer;
 }
 
 .left-section {
@@ -154,11 +168,11 @@ export default {
 .scrollable-section {
     flex-grow: 1;
     overflow-y: auto;
-    margin-bottom: 15px; /* Memberi jarak di bawah scrollable section */
+    margin-bottom: 15px;
 }
 
 .comments-section {
-    max-height: 200px; /* Batasi tinggi untuk scrollbar */
+    max-height: 200px;
 }
 
 .comment {
