@@ -78,7 +78,7 @@ class ProfileController extends Controller
                     'name' => $user->name,
                     'email' => $user->email,
                     'bio' => $user->bio,
-                    'path' => $user->path ? asset('storage/public/profile_images' . $user->path) : null,
+                    'path' => $user->path ? asset('storage/profile_images/' . $user->path) : null,
                     'posts' => $posts
                 ],
             'postsCount' => count(json_decode($posts->getContent())->posts),
@@ -105,6 +105,13 @@ class ProfileController extends Controller
         ], 200);
     }
 
+    public function edit()
+    {
+        $user = Auth::user();
+        return Inertia::render('EditProfile', [
+            'user' => $user
+        ]);
+    }
 
     public function updateProfile(Request $request)
     {

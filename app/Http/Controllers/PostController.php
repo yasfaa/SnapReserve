@@ -37,27 +37,23 @@ class PostController extends Controller
 
         $post->save();
 
-        return redirect()->route('dashboard')->with('success', 'Post uploaded successfully.');
+        return redirect()->route('profile')->with('success', 'Post uploaded successfully.');
     }
 
 
     public function addComment(Request $request, $post_id)
     {
-        try {
-            $request->validate([
-                'comment' => 'required|string'
-            ]);
+        $request->validate([
+            'comment' => 'required|string'
+        ]);
 
-            $comment = new Comment();
-            $comment->comment = $request->comment;
-            $comment->post_id = $post_id;
-            $comment->user_id = Auth::id();
-            $comment->save();
+        $comment = new Comment();
+        $comment->comment = $request->comment;
+        $comment->post_id = $post_id;
+        $comment->user_id = Auth::id();
+        $comment->save();
 
-            return response()->json(['status' => 'success', 'message' => 'Komentar berhasil ditambahkan'], 201);
-        } catch (\Exception $e) {
-            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
-        }
+        return redirect()->back()->with('success', 'Komentar berhasil ditambahkan');
     }
 
     public function deleteComment($commentId)
@@ -79,25 +75,20 @@ class PostController extends Controller
 
     public function likePost($postId)
     {
-        try {
-            $post = Post::findOrFail($postId);
-            $userId = Auth::id();
+        $userId = Auth::id();
+        $like = Like::where('post_id', $postId)->where('user_id', $userId)->first();
 
-            $like = Like::where('post_id', $postId)->where('user_id', $userId)->first();
+        if ($like) {
+            $like->delete();
+        } else {
+            Like::create([
+                'post_id' => $postId,
+                'user_id' => $userId,
+            ]);
 
-            if ($like) {
-                $like->delete();
-                return response()->json(['status' => 'success', 'message' => 'Like dihapus'], 200);
-            } else {
-                $newLike = new Like();
-                $newLike->post_id = $postId;
-                $newLike->user_id = $userId;
-                $newLike->save();
-                return response()->json(['status' => 'success', 'message' => 'Post berhasil dilike'], 201);
-            }
-        } catch (\Exception $e) {
-            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+            return redirect()->back()->with('success', 'Status like berubah.');
         }
+
     }
 
     public function getPostDetail($postId)
@@ -138,34 +129,64 @@ class PostController extends Controller
 
     public function getArchivedPhotos(Request $request)
     {
+
+        $query = Post::where('status', 'archived');
+
+        if ($request->query('start_date')) {
+            $query->where('created_at', '>=', $request->query('start_date'));
+        }
+
+        if ($request->query('end_date')) {
+            $query->where('created_at', '<=', $request->query('end_date'));
+        }
+
+        $archivedPhotos = $query->get(['path', 'caption', 'created_at']);
+
+        $result = $archivedPhotos->map(function ($photo) {
+            return [
+                'path' => asset('storage/post_images/' . $photo->path),
+                'caption' => $photo->caption,
+                'tanggal' => $photo->created_at,
+            ];
+        });
+
+        return Inertia::render('ArchivedPhotos', [
+            'archived_photos' => $result,
+        ]);
+    }
+
+
+    public function archivePost($id)
+    {
         try {
-            $query = Post::where('status', 'archived');
-
-            if ($request->query('start_date')) {
-                $query->where('created_at', '>=', $request->query('start_date'));
+            $post = Post::find($id);
+            if (!$post) {
+                return response()->json(['status' => 'error', 'message' => 'Post not found'], 404);
             }
 
-            if ($request->query('end_date')) {
-                $query->where('created_at', '<=', $request->query('end_date'));
-            }
+            $post->status = 'archived';
+            $post->save();
 
-            $archivedPhotos = $query->get(['path', 'caption', 'created_at']);
-
-            // Format hasil untuk ditampilkan
-            $result = $archivedPhotos->map(function ($photo) {
-                return [
-                    'path' => asset('storage/post_images/' . $photo->path),
-                    'caption' => $photo->caption,
-                    'tanggal' => $photo->created_at,
-                ];
-            });
-
-            return response()->json([
-                'status' => 'success',
-                'archived_photos' => $result,
-            ], 200);
+            return response()->json(['status' => 'success', 'message' => 'Post archived successfully'], 200);
         } catch (\Exception $e) {
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
     }
+    public function unarchivePost($id)
+    {
+        try {
+            $post = Post::find($id);
+            if (!$post) {
+                return response()->json(['status' => 'error', 'message' => 'Post not found'], 404);
+            }
+
+            $post->status = 'active';  // Change status to active
+            $post->save();
+
+            return response()->json(['status' => 'success', 'message' => 'Post unarchived successfully'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
+    }
+
 }

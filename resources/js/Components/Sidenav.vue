@@ -38,7 +38,7 @@ export default {
     left: 0;
     top: 0;
     height: 100vh;
-    width: 200px;
+    width: 250px;
     background-color: #e8e8e8;
     color: #000;
     padding-top: 20px;

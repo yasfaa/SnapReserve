@@ -39,7 +39,7 @@
                     </div>
                 </div>
                 <div class="like-section">
-                    <button @click="toggleLike" class="like-button">
+                    <button @click="toggleLike(post.id)" class="like-button">
                         <span v-if="post.has_liked">♥</span>
                         <span v-else>♡</span>
                     </button>
@@ -52,7 +52,10 @@
                         placeholder="Tambahkan komentar..."
                         class="comment-input"
                     />
-                    <button @click="addComment" class="post-comment-button">
+                    <button
+                        @click="addComment(post.id)"
+                        class="post-comment-button"
+                    >
                         Post
                     </button>
                 </div>
@@ -73,13 +76,33 @@ export default {
         closeModal() {
             this.$emit("close");
         },
-        toggleLike() {
-            this.$emit("toggle-like", this.post.id);
+        toggleLike(postId) {
+            this.$inertia.post(
+                `/post/${postId}/like`,
+                {},
+                {
+                    preserveScroll: true,
+                    onSuccess: () => {
+                        this.post.has_liked = !this.post.has_liked;
+                        this.post.like_count += this.post.has_liked ? 1 : -1;
+                    },
+                }
+            );
         },
-        addComment() {
+        addComment(postId) {
             if (this.newComment.trim()) {
-                this.$emit("add-comment", this.newComment);
-                this.newComment = "";
+                this.$inertia.post(
+                    `/post/${postId}/comment`,
+                    {
+                        comment: this.newComment,
+                    },
+                    {
+                        preserveScroll: true,
+                        onSuccess: () => {
+                            this.newComment = "";
+                        },
+                    }
+                );
             }
         },
     },
@@ -104,10 +127,11 @@ export default {
     display: flex;
     width: 80%;
     max-width: 900px;
+    max-width: 800px;
     background: white;
     border-radius: 8px;
     overflow: hidden;
-    position: relative; /* Agar tombol silang terletak relatif terhadap modal */
+    position: relative; 
 }
 
 .close-button {

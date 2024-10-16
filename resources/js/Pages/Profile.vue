@@ -160,6 +160,7 @@ export default {
 .profile-picture {
     width: 100px;
     height: 100px;
+    object-fit: cover;
 }
 .edit-profile-btn,
 .view-archive-btn {
