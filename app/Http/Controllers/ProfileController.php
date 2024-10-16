@@ -53,9 +53,12 @@ class ProfileController extends Controller
 
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        Auth::logout();
 
-        return redirect()->route('/')->with('success', 'Logout berhasil.');
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('auth')->with('success', 'Logout berhasil.');
     }
 
     public function getProfile(Request $request)

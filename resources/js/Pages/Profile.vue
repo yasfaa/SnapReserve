@@ -5,7 +5,7 @@
 
         <!-- Konten Profil -->
         <div class="profile-content flex-grow-1">
-            <div class="profile-header ms-3 py-6 d-flex">
+            <div class="profile-header ms-3 py-6 d-flex row">
                 <img
                     :src="user.path || 'http://www.gravatar.com/avatar/?d=mp'"
                     alt="Profile Picture"

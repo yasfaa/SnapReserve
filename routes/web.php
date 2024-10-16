@@ -12,6 +12,7 @@ Route::get('/', function () {
 Route::get('/login', [ProfileController::class, 'showAuthPage'])->name('auth');
 Route::post('/login', [ProfileController::class, 'login']);
 Route::post('/register', [ProfileController::class, 'register']);
+Route::post('/logout', [ProfileController::class, 'logout'])->name('logout');
 
 // web.php
 Route::get('/dashboard', [ProfileController::class, 'getProfile'])->name('profile');

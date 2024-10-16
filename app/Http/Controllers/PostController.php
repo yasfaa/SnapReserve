@@ -14,7 +14,7 @@ class PostController extends Controller
     {
         $request->validate([
             'caption' => 'required',
-            'gambar' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
+            'gambar' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:153600',
         ]);
 
         $post = new Post();
