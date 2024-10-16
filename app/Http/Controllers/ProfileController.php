@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Post;
 use App\Models\User;
+use Inertia\Inertia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Inertia\Inertia;
 
 class ProfileController extends Controller
 {
@@ -69,6 +70,8 @@ class ProfileController extends Controller
             return redirect()->back()->with('error', 'Profile tidak ditemukan.');
         }
 
+        $posts = $this->getAllMyPosts();
+
         return Inertia::render('Profile', [
             'user' =>
                 [
@@ -76,9 +79,32 @@ class ProfileController extends Controller
                     'email' => $user->email,
                     'bio' => $user->bio,
                     'path' => $user->path ? asset('storage/public/profile_images' . $user->path) : null,
-                ]
+                    'posts' => $posts
+                ],
+            'postsCount' => count(json_decode($posts->getContent())->posts),
         ]);
     }
+
+    public function getAllMyPosts()
+    {
+        $user = auth()->user();
+
+        $posts = Post::where('user_id', $user->id)->get(['id', 'path']); // Get all posts with ID and path
+
+        // Map to include the full path
+        $imageUrls = $posts->map(function ($post) {
+            return [
+                'id' => $post->id, // Include ID
+                'path' => asset('storage/post_images/' . $post->path),
+            ];
+        });
+
+        return response()->json([
+            'message' => 'Posts retrieved successfully',
+            'posts' => $imageUrls->toArray(), // Convert to array
+        ], 200);
+    }
+
 
     public function updateProfile(Request $request)
     {

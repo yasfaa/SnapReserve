@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('posts', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained();
-            $table->text('caption');
+            $table->text('caption')->nullable();
             $table->enum('status', ['active', 'archived'])->default('active');
             $table->string('path');
             $table->timestamps();

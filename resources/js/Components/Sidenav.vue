@@ -2,7 +2,7 @@
     <div class="sidenav text-uppercase">
         <ul>
             <li @click="profile">Profile</li>
-            <li @click="upload">Post Foto</li>
+            <li @click="upload">Create Post</li>
             <li @click="logout" class="logout">Logout</li>
         </ul>
     </div>
@@ -26,7 +26,7 @@ export default {
             this.$inertia.visit("/dashboard");
         },
         upload() {
-            this.$inertia.visit("/create-post");
+            this.$inertia.visit("/upload");
         },
     },
 };

@@ -4,44 +4,42 @@ namespace App\Http\Controllers;
 
 use App\Models\Like;
 use App\Models\Post;
+use Inertia\Inertia;
 use App\Models\Comment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class PostController extends Controller
 {
+    public function showUploadPage()
+    {
+        return Inertia::render('Post');
+    }
+
     public function upload(Request $request)
     {
         $request->validate([
-            'caption' => 'required',
-            'gambar' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:153600',
+            'caption' => 'required|string|max:255',
+            'gambar' => 'required|mimes:jpeg,png,jpg,gif,webp,mp4,avi,mov|max:153600',
         ]);
 
         $post = new Post();
         $post->user_id = auth()->user()->id;
         $post->caption = $request->caption;
-        if ($request->hasFile('gambar')) {
-            $path = $request->file('gambar')->store('public/post_images');
-            $fileName = basename($path);
 
-            $post->path = $fileName;
+        if ($request->hasFile('gambar')) {
+            $fileType = $request->file('gambar')->getMimeType();
+            $folder = str_contains($fileType, 'video') ? 'public/post_videos' : 'public/post_images';
+
+            $path = $request->file('gambar')->store($folder);
+            $post->path = basename($path);
         }
 
         $post->save();
 
-        return response()->json([
-            'message' => 'Post uploaded successfully',
-            'post' => [
-                'id' => $post->id,
-                'user_id' => $post->user_id,
-                'username' => $post->user->name,
-                'caption' => $post->caption,
-                'image_url' => asset('storage/post_images/' . $post->path),
-                'created_at' => $post->created_at,
-                'updated_at' => $post->updated_at,
-            ]
-        ], 201);
+        return redirect()->route('dashboard')->with('success', 'Post uploaded successfully.');
     }
+
 
     public function addComment(Request $request, $post_id)
     {
@@ -102,22 +100,6 @@ class PostController extends Controller
         }
     }
 
-    public function getAllMyPosts()
-    {
-        $user = auth()->user();
-
-        $posts = Post::where('user_id', $user->id)->pluck('path');
-
-        $imageUrls = $posts->map(function ($path) {
-            return asset('storage/post_images/' . $path);
-        });
-
-        return response()->json([
-            'message' => 'Posts retrieved successfully',
-            'posts' => $imageUrls,
-        ], 200);
-    }
-
     public function getPostDetail($postId)
     {
         $user = auth()->user();
@@ -139,9 +121,9 @@ class PostController extends Controller
             ];
         });
 
-        return response()->json([
-            'message' => 'Post detail retrieved successfully',
+        return Inertia::render('Profile', [
             'post' => [
+                'id' => $post->id,
                 'username' => $post->user->name,
                 'caption' => $post->caption,
                 'image_url' => asset('storage/post_images/' . $post->path),
@@ -149,8 +131,9 @@ class PostController extends Controller
                 'has_liked' => $hasLiked,
                 'comments' => $comments,
                 'created_at' => $post->created_at,
-            ]
-        ], 200);
+                'profile_image_url' => $post->user->path ? asset('storage/profile_images/' . $post->user->path) : null,
+            ],
+        ]);
     }
 
     public function getArchivedPhotos(Request $request)

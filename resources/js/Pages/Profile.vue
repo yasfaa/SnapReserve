@@ -1,9 +1,7 @@
 <template>
     <div class="profile-page d-flex">
-        <!-- Sidenav berada di sebelah kiri -->
         <Sidenav v-show="!isMobile" class="sidenav" />
 
-        <!-- Konten Profil -->
         <div class="profile-content flex-grow-1">
             <div class="profile-header ms-3 py-6 d-flex row">
                 <img
@@ -15,10 +13,16 @@
                     <div class="profile-header-top">
                         <h2>{{ user.name }}</h2>
                         <div class="d-flex mt-2">
-                            <button @click="goToEditProfile" class="edit-profile-btn me-2">
+                            <button
+                                @click="goToEditProfile"
+                                class="edit-profile-btn me-2"
+                            >
                                 Edit Profile
                             </button>
-                            <button @click="goToArchive" class="view-archive-btn">
+                            <button
+                                @click="goToArchive"
+                                class="view-archive-btn"
+                            >
                                 View Archive
                             </button>
                         </div>
@@ -29,35 +33,61 @@
                 </div>
             </div>
 
-            <!-- Konten Postingan -->
-            <div v-if="postsCount > 0" class="profile-posts pt-5" :style="{ gridTemplateColumns: `repeat(${feedPerRow}, 1fr)` }">
-                <div v-for="(image, index) in postImages" :key="index" class="post-image">
-                    <img :src="image" alt="Post Image" />
+            <div
+                v-if="postsCount > 0"
+                class="profile-posts pt-5"
+                :style="{ gridTemplateColumns: `repeat(${feedPerRow}, 1fr)` }"
+            >
+                <div
+                    v-for="(image, index) in postImages"
+                    :key="image.id"
+                    class="post-image"
+                    @click="openPostDetail(image.id)"
+                >
+                    <img :src="image.path" alt="Post Image" />
                 </div>
             </div>
             <div v-else class="no-posts text-center pt-5">
                 <p class="fw-bold">Share Photos</p>
-                <p class="text-muted">When you share photos, they will appear on your profile.</p>
-                <a href="/create-post" class="share-first-photo text-primary fw-bold">Share your first photo</a>
+                <p class="text-muted">
+                    When you share photos, they will appear on your profile.
+                </p>
+                <a
+                    href="/create-post"
+                    class="share-first-photo text-primary fw-bold"
+                    >Share your first photo</a
+                >
             </div>
         </div>
+        <PostDetailModal
+            v-if="isModalOpen"
+            :post="selectedPost"
+            :isOpen="isModalOpen"
+            @close="isModalOpen = false"
+            @toggle-like="toggleLike"
+            @add-comment="addComment"
+        />
     </div>
 </template>
 
 <script>
 import Sidenav from "@/Components/Sidenav.vue";
+import PostDetailModal from "@/Components/PostDetailModal.vue";
 
 export default {
-    components: { Sidenav },
+    components: { Sidenav, PostDetailModal },
     props: {
         user: Object,
-        postsCount: Number,
-        postImages: Array,
         feedPerRow: { type: Number, default: 3 },
     },
     data() {
         return {
             isMobile: window.innerWidth <= 768,
+            posts: this.user.posts,
+            postsCount: this.user.posts.length,
+            postImages: [],
+            selectedPost: null,
+            isModalOpen: false,
         };
     },
     methods: {
@@ -67,8 +97,34 @@ export default {
         goToArchive() {
             this.$inertia.get("/profile/archive");
         },
+        openPostDetail(postId) {
+            this.$inertia.visit(`/posts/${postId}/detail`, {
+                only: ["post"],
+                preserveScroll: true,
+                preserveState: true,
+                onSuccess: (response) => {
+                    this.selectedPost = response.props.post; // Update the post data
+                    this.isModalOpen = true; // Open modal
+                },
+                onError: (errors) => {
+                    console.error("Error fetching post details:", errors);
+                },
+            });
+        },
     },
     mounted() {
+        if (Array.isArray(this.user.posts)) {
+            this.postImages = this.user.posts.map((post) => ({
+                id: post.id,
+                path: post.path,
+            }));
+        } else if (this.user.posts && this.user.posts.original) {
+            this.postImages = this.user.posts.original.posts.map((post) => ({
+                id: post.id,
+                path: post.path,
+            }));
+        }
+        this.postsCount = this.postImages.length;
         window.addEventListener("resize", this.updateIsMobile);
     },
     beforeDestroy() {
@@ -123,8 +179,10 @@ export default {
     gap: 5px;
 }
 .post-image img {
-    width: 100%;
-    height: auto;
+    object-fit: cover;
+    object-position: center center;
+    width: 250px;
+    height: 250px;
 }
 .no-posts {
     text-align: center;
