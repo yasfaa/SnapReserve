@@ -32,7 +32,6 @@
             </div>
         </div>
 
-        <!-- Data Table -->
         <div class="card">
             <div class="card-body">
                 <table class="table archived-table">
@@ -76,7 +75,6 @@
             </div>
         </div>
 
-        <!-- Export Buttons -->
         <div class="export-buttons">
             <button class="btn btn-success" @click="downloadAsXLSX">
                 Download XLSX
@@ -129,7 +127,8 @@ export default {
             this.$inertia.get("/posts/archived", params).then((response) => {
                 this.archivedPhotos = response.props.archived_photos;
 
-                this.filters.startDate = response.props.filters.start_date || "";
+                this.filters.startDate =
+                    response.props.filters.start_date || "";
                 this.filters.endDate = response.props.filters.end_date || "";
             });
         },
@@ -146,28 +145,92 @@ export default {
             });
         },
         downloadAsXLSX() {
-            const ws = XLSX.utils.json_to_sheet(this.archivedPhotos);
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Archive Data");
-            XLSX.writeFile(wb, "archive.xlsx");
+            const ws = XLSX.utils.json_to_sheet(
+                this.archivedPhotos.map((photo) => ({
+                    Caption: photo.caption,
+                    Tanggal: this.formatDate(photo.tanggal),
+                }))
+            );
+
+            const imgArray = this.archivedPhotos.map((photo) => {
+                return new Promise((resolve) => {
+                    const img = new Image();
+                    img.src = photo.path; // Make sure this is a valid URL
+                    img.crossOrigin = "anonymous"; // Required if the image is from a different origin
+                    img.onload = () => {
+                        const canvas = document.createElement("canvas");
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        const ctx = canvas.getContext("2d");
+                        ctx.drawImage(img, 0, 0);
+                        const imgData = canvas.toDataURL("image/png"); // Get base64 string
+
+                        // Add image to the workbook
+                        const imgId = wb.SheetNames.length + 1; // A unique id for the image
+                        XLSX.utils.book_append_sheet(wb, ws, "Archive Data");
+                        const newImg = {
+                            name: `Image${imgId}.png`, // Name of the image
+                            data: imgData, // Base64 string
+                            opts: {
+                                base64: true,
+                                position: {
+                                    tl: { r: imgId, c: 0 },
+                                    ext: {
+                                        width: img.width,
+                                        height: img.height,
+                                    },
+                                },
+                            },
+                        };
+                        XLSX.utils.drawing.add_image(ws, newImg);
+                        resolve();
+                    };
+                });
+            });
+
+            Promise.all(imgArray).then(() => {
+                XLSX.writeFile(wb, "archive.xlsx");
+            });
         },
         downloadAsPDF() {
             const doc = new jsPDF();
             const columns = ["Foto/Video", "Caption", "Tanggal"];
-            const data = this.archivedPhotos.map((photo) => [
-                photo.path,
-                photo.caption,
-                this.formatDate(photo.tanggal),
-            ]);
+            const data = [];
 
-            doc.text("Archived Posts", 20, 10);
-            doc.autoTable({
-                head: [columns],
-                body: data,
-                startY: 20,
+            const promises = this.archivedPhotos.map((photo) => {
+                return new Promise((resolve) => {
+                    const img = new Image();
+                    img.src = photo.path;
+                    img.onload = () => {
+                        const imgData = doc.addImage(
+                            img,
+                            "JPEG",
+                            10,
+                            10,
+                            40,
+                            30
+                        );
+                        data.push([
+                            imgData,
+                            photo.caption,
+                            this.formatDate(photo.tanggal),
+                        ]);
+                        resolve();
+                    };
+                });
             });
 
-            doc.save("archive.pdf");
+            Promise.all(promises).then(() => {
+                doc.text("Archived Posts", 20, 10);
+                doc.autoTable({
+                    head: [columns],
+                    body: data,
+                    startY: 20,
+                });
+
+                doc.save("archive.pdf");
+            });
         },
     },
 };
@@ -229,7 +292,6 @@ h2 {
 }
 
 .btn {
-    
     background-color: #3897f0;
     color: white;
     border: none;
