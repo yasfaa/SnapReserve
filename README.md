@@ -17,23 +17,23 @@ Ikuti langkah-langkah berikut untuk menginstal proyek ini:
 
 1. **Clone repository**
 
-   > git clone https://github.com/yasfaa/SnapReserve.git
-   > cd repo
+   - git clone https://github.com/yasfaa/SnapReserve.git
+   - cd repo
 
 2. **Install dependensi**
 
-   > composer install
-   > npm install
+   - composer install
+   - npm install
 
 3. **Setup environment**
 
    Salin file .env.example menjadi .env dan sesuaikan pengaturan database dan konfigurasi lainnya.
 
-   > cp .env.example .env
+   - cp .env.example .env
 
    Impor database snapreserve.sql ke dalam database milik anda
 
 3. **Jalankan Aplikasi**
 
-   > php artisan serve
-   > npm run dev
+   - php artisan serve
+   - npm run dev
