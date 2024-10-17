@@ -95,7 +95,7 @@ export default {
             this.$inertia.get("/profile/edit");
         },
         goToArchive() {
-            this.$inertia.get("/profile/archive");
+            this.$inertia.get("/posts/archived");
         },
         openPostDetail(postId) {
             this.$inertia.visit(`/posts/${postId}/detail`, {

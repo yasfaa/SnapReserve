@@ -1,6 +1,5 @@
 <template>
     <main>
-        <!-- <Navbar /> -->
         <section class="login-section">
             <div class="container">
                 <div class="form-box" :class="{ 'register-form': isRegister }">

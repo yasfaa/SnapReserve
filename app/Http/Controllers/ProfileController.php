@@ -89,7 +89,7 @@ class ProfileController extends Controller
     {
         $user = auth()->user();
 
-        $posts = Post::where('user_id', $user->id)->get(['id', 'path']); // Get all posts with ID and path
+        $posts = Post::where('user_id', $user->id)->where('status', 'active')->get(['id', 'path']);
 
         // Map to include the full path
         $imageUrls = $posts->map(function ($post) {

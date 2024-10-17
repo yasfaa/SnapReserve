@@ -4,6 +4,9 @@
             <button class="close-button" @click="$inertia.visit('/dashboard')">
                 &times;
             </button>
+            <button @click="archivePost(post.id)" class="archive-button">
+                Arsipkan
+            </button>
             <div class="left-section">
                 <img
                     :src="post.image_url"
@@ -105,6 +108,11 @@ export default {
                 );
             }
         },
+        archivePost(id) {
+            this.$inertia.post(`/posts/archive/${id}`).then(() => {
+                this.$inertia.visit("/profile");
+            });
+        },
     },
 };
 </script>
@@ -131,7 +139,7 @@ export default {
     background: white;
     border-radius: 8px;
     overflow: hidden;
-    position: relative; 
+    position: relative;
 }
 
 .close-button {
@@ -141,7 +149,20 @@ export default {
     background: none;
     border: none;
     font-size: 2em;
-    color: #333; /* Warna tombol silang */
+    color: #333;
+    cursor: pointer;
+}
+
+.archive-button {
+    position: absolute;
+    top: 15px;
+    right: 30px;
+    background-color: #3897f0;
+    color: white;
+    border: none;
+    padding: 4px 7px;
+    border-radius: 5px;
+    font-size: 1em;
     cursor: pointer;
 }
 
