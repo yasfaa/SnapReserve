@@ -31,8 +31,10 @@ Ikuti langkah-langkah berikut untuk menginstal proyek ini:
     - cp .env.example .env
 
     jalankan perintah 
-    
+
     - php artisan key:generate
+
+    buat database bernama 'snapreserve'
 
     Impor database snapreserve.sql ke dalam database milik anda
 
@@ -40,5 +42,5 @@ Ikuti langkah-langkah berikut untuk menginstal proyek ini:
 
     Pastikan kedua server berikut menyala. gunakan terminal yang berbeda
 
--   php artisan serve
--   npm run dev
+    -   php artisan serve
+    -   npm run dev
