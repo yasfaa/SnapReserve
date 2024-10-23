@@ -95,7 +95,7 @@ export default {
             const formData = new FormData();
             formData.append("name", this.form.name);
             formData.append("bio", this.form.bio);
-            formData.append("feedPerRow", this.form.feedPerRow);
+            formData.append("feed", this.form.feedPerRow);
             if (this.form.gambar) {
                 formData.append("gambar", this.form.gambar);
             }

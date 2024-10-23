@@ -78,7 +78,6 @@ export default {
     components: { Sidenav, PostDetailModal },
     props: {
         user: Object,
-        feedPerRow: { type: Number, default: 3 },
     },
     data() {
         return {
@@ -88,6 +87,7 @@ export default {
             postImages: [],
             selectedPost: null,
             isModalOpen: false,
+            feedPerRow: this.user.feed || 3,
         };
     },
     methods: {
@@ -104,7 +104,7 @@ export default {
                 preserveState: true,
                 onSuccess: (response) => {
                     this.selectedPost = response.props.post; // Update the post data
-                    this.isModalOpen = true; // Open modal
+                    this.isModalOpen = true;
                 },
                 onError: (errors) => {
                     console.error("Error fetching post details:", errors);
@@ -137,7 +137,7 @@ export default {
 .profile-page {
     display: flex;
     color: #000;
-    padding-left: 220px; /* Tambahkan padding untuk menyesuaikan Sidenav */
+    padding-left: 220px;
 }
 .sidenav {
     flex-shrink: 0;
@@ -194,7 +194,6 @@ export default {
     font-weight: bold;
 }
 
-/* Media query untuk menyesuaikan padding di desktop */
 @media (max-width: 992px) {
     .profile-page {
         padding-left: 0;

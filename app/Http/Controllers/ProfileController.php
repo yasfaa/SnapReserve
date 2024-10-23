@@ -29,6 +29,7 @@ class ProfileController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'feed' => 3,
         ]);
 
         Auth::attempt($request->only('email', 'password'));
@@ -119,6 +120,7 @@ class ProfileController extends Controller
             'name' => 'required',
             'bio' => 'nullable|string',
             'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
+            'feed' => 'integer',
         ]);
 
         $user = Auth::user();
@@ -133,6 +135,7 @@ class ProfileController extends Controller
         $user->update([
             'name' => $request->name,
             'bio' => $request->bio,
+            'feed' => $request->feed,
         ]);
 
         return redirect()->route('profile')->with('success', 'Profile berhasil diupdate.');
